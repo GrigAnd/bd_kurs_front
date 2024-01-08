@@ -1,0 +1,9 @@
+.star{
+  color: yellow;
+  transform: scale(1.7);
+}
+
+.stars{
+  display: flex;
+  justify-content: space-between
+}

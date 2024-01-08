@@ -1,0 +1,44 @@
+{
+  "name": "vkui4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env PORT=10888 react-scripts start",
+    "predeploy": "npm run build",
+    "deploy": "vk-miniapps-deploy",
+    "tunnel": "vk-tunnel --insecure=1 --http-protocol=https --ws-protocol=wss --host=localhost --port=10888",
+    "build": "react-scripts build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "react-hot-loader": "^4.13.1",
+    "react-scripts": "^5.0.1"
+  },
+  "dependencies": {
+    "@vkontakte/icons": "^2.90.0",
+    "@vkontakte/vkjs": "^1.1.1",
+    "@vkontakte/vkui": "^4.1.0",
+    "@vkontakte/vk-bridge": "^2.12.2",
+    "lodash": "^4.17.21",
+    "prop-types": "^15.8.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-ga": "^3.3.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
