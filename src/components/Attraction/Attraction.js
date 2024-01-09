@@ -8,11 +8,12 @@ import {
   FormItem,
   CustomSelect,
   IconButton,
-  Header
+  Header,
+  Spinner
 } from "@vkontakte/vkui";
 import { Icon28FavoriteOutline, Icon24GlobeOutline, Icon28Favorite } from "@vkontakte/icons"
 import React from "react";
-import { get, post } from "../../fetchDecorated";
+import { get, post } from "../../util";
 
 const Attraction = (props) => {
   const [attractions, setAttractions] = React.useState()
@@ -29,31 +30,23 @@ const Attraction = (props) => {
       )
 
 
-    // setFavoriteAttractions([{
-    //   id: 1,
-    //   name: "Московский Кремль",
-    //   address: "Красная площадь, 2, Москва, 109012",
-    //   type: "Достопримечательность",
-    //   ticket_price: "1000",
-    // }])
+
   }, [])
 
   function searchAttractions() {
+    setAttractions()
     get(`http://localhost:12345/attraction/getList?country_id=${selectedCountry}`)
       .then((r) => {
-        console.log(r)
-        setAttractions(r.json)
+        if (r.status == 200) {
+          console.log(r)
+          setAttractions(r.json)
+        } else {
+          props.showSnackbar('Ошибка ' + r.status)
+        }
+
       }
       )
     setIsSearch(true)
-    // setAttractions([{
-    //   id: 2,
-    //   name: "Московский Кремль2",
-    //   address: "Красная площадь, 2, Москва, 109012",
-    //   type: "Достопримечательность",
-    //   ticket_price: "1000",
-    // }])
-
   }
 
   function removeFromFavorite(id) {
@@ -113,6 +106,14 @@ const Attraction = (props) => {
         </Div>
       </Group>
 
+      {favoriteAttractions == undefined && !isSearch &&
+        <Group header={<Header mode="secondary">Избранное</Header>}>
+          <Div>
+            <Spinner size="large" />
+          </Div>
+        </Group>
+      }
+
 
       {favoriteAttractions?.length > 0 && !isSearch &&
         <Group header={<Header mode="secondary">Избранное</Header>}>
@@ -139,6 +140,13 @@ const Attraction = (props) => {
         </Group>
       }
 
+      {attractions == undefined && isSearch &&
+        <Group header={<Header mode="secondary">Найденные достопримечательности</Header>}>
+          <Div>
+            <Spinner size="large" />
+          </Div>
+        </Group>
+      }
 
       {attractions?.length == 0 &&
         <Group hidden={attractions == undefined}>
@@ -152,50 +160,52 @@ const Attraction = (props) => {
       }
 
       {attractions?.length > 0 &&
-        <div>
-          <Group>
-            <Div>
-              <Button
-                onClick={() => {
-                  setIsSearch(false)
-                  setAttractions()
-                }}
-                size="l"
-                stretched
-                mode="secondary"
-              >В избранное
-              </Button>
-            </Div>
-          </Group>
-          <Group header={<Header mode="secondary">Найденные достопримечательности</Header>}>
-            {attractions.map((attraction, index) => {
-              let isFavorite = false
-              favoriteAttractions?.map((favoriteAttraction) => {
-                if (favoriteAttraction.id == attraction.id) {
-                  isFavorite = true
-                }
-              })
-              return (
-                <RichCell
-                  key={index}
-                  text={attraction.address}
-                  subhead={attraction.type}
-                  caption={attraction.ticket_price}
-                  after={<IconButton
-                    onClick={() => addToFavorite(attraction.id)}
-                    style={{ color: "var(--accent)" }}
-                  >
-                    {isFavorite ? <Icon28Favorite /> : <Icon28FavoriteOutline />}
-                  </IconButton>}
-                  multiline
+        <Group header={<Header mode="secondary">Найденные достопримечательности</Header>}>
+          {attractions.map((attraction, index) => {
+            let isFavorite = false
+            favoriteAttractions?.map((favoriteAttraction) => {
+              if (favoriteAttraction.id == attraction.id) {
+                isFavorite = true
+              }
+            })
+            return (
+              <RichCell
+                key={index}
+                text={attraction.address}
+                subhead={attraction.type}
+                caption={attraction.ticket_price}
+                after={<IconButton
+                  onClick={() => addToFavorite(attraction.id)}
+                  style={{ color: "var(--accent)" }}
                 >
-                  {attraction.name}
-                </RichCell>
-              )
-            })}
-          </Group>
-        </div>
+                  {isFavorite ? <Icon28Favorite /> : <Icon28FavoriteOutline />}
+                </IconButton>}
+                multiline
+              >
+                {attraction.name}
+              </RichCell>
+            )
+          })}
+        </Group>
       }
+
+      {isSearch &&
+        <Group>
+          <Div>
+            <Button
+              onClick={() => {
+                setIsSearch(false)
+                setAttractions()
+              }}
+              size="l"
+              stretched
+              mode="secondary"
+            >Вернуться в избранное
+            </Button>
+          </Div>
+        </Group>}
+
+
     </Panel>
   );
 };

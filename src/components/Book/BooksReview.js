@@ -6,11 +6,12 @@ import {
   Button,
   Div,
   Textarea,
-  IconButton
+  IconButton,
+  PanelHeaderBack
 } from "@vkontakte/vkui";
 import { React, useState } from "react";
 import "../../styles.css"
-import { post } from "../../fetchDecorated";
+import { post } from "../../util";
 import { Icon28Favorite, Icon28FavoriteOutline } from "@vkontakte/icons";
 
 import './styles.css'
@@ -27,19 +28,38 @@ const BooksReview = (props) => {
       text: review
     })
       .then((r) => {
-        console.log(r)
-        props.setActivePanel("books_view")
+
+        switch (r.status) {
+          case 200:
+            props.showSnackbar('Отзыв успешно отправлен')
+            console.log(r)
+            props.setActivePanel("books_view")
+            break;
+          case 409:
+            props.showSnackbar('Уже есть отзыв на этот тур')
+            break;
+          case 500:
+            props.showSnackbar('Уже есть отзыв на этот тур')
+            break;
+          default:
+            props.showSnackbar('Ошибка ' + r.status)
+            break;
+        }
       }
       )
   }
 
   return (
     <Panel className="scroll" id={props.id}>
-      <PanelHeader >
+      <PanelHeader
+        left={
+          <PanelHeaderBack onClick={() => props.setActivePanel('books_view')} />
+        }
+      >
         Отзыв
       </PanelHeader>
       <Group>
-        
+
         <FormItem top="Оценка" >
           <Div className="stars">
             {Array.from({ length: 5 }, (_, index) => (
@@ -74,6 +94,7 @@ const BooksReview = (props) => {
           </Button>
         </Div>
       </Group>
+
 
     </Panel>
   );

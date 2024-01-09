@@ -40,7 +40,7 @@ const TourReviews = (props) => {
                   key={index}
                   // before={<Icon28Profile />}
                   text={review.review_text}
-                  subhead={review.datetime + " " + review.src_name}
+                  subhead={review.datetime.slice(0, 10) + " " + review.src_address}
                   after={stars}
                   disabled
                   multiline
@@ -67,7 +67,8 @@ const TourReviews = (props) => {
 
 
 
-    </Panel>
+    
+</Panel>
   );
 };
 export default TourReviews;

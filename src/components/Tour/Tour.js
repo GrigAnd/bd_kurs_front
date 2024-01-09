@@ -10,9 +10,11 @@ import {
   Header,
   SimpleCell,
   Separator,
-  Switch} from "@vkontakte/vkui";
+  Switch,
+  PanelHeaderBack
+} from "@vkontakte/vkui";
 import React, { useEffect } from "react";
-import { get } from "../../fetchDecorated";
+import { get, ratingToStars } from "../../util";
 
 const tripTypeIcons = {
   Plane: <Icon28PlaneOutline />,
@@ -21,7 +23,7 @@ const tripTypeIcons = {
 }
 
 const Tour = (props) => {
- 
+
   const [needVisa, setNeedVisa] = React.useState(false)
 
   useEffect(() => {
@@ -31,96 +33,13 @@ const Tour = (props) => {
         console.log(r)
         props.setTourInfo(r.json)
       })
-      
-
-    // props.setTourInfo({
-    //   trips: [{
-    //     src_country_id: 1,
-    //     dst_country_id: 2,
-    //     transport_type: "plane",
-    //     datetime_start: "2021-05-01T00:00:00",
-    //     datetime_end: "2021-05-01T00:00:00",
-    //     price: "100",
-    //     tour_id: 1,
-    //   }],
-    //   guides: [{
-    //     first_name: "Иван",
-    //     last_name: "Иванов",
-    //     age: 27,
-    //     gender: true,
-    //     agency_id: 1,
-    //   }],
-    //   need_visa: [1, 2, 3],
-    //   reviews: [
-    //     {
-    //       author: {
-    //         first_name: "Иван",
-    //         last_name: "Иванов",
-    //         gender: true,
-    //       },
-    //       review_text: "Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!",
-    //       rating: 5,
-    //       datetime: "2021-05-01",
-    //       review_src: {
-    //         name: "Наше приложение",
-    //         type: "app",
-    //         address: "https://vk.com/app1234567"
-    //       }
-    //     },
-
-    //     {
-    //       author: {
-    //         first_name: "Иван",
-    //         last_name: "Иванов",
-    //         gender: true,
-    //       },
-    //       review_text: "Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!",
-    //       rating: 5,
-    //       datetime: "2021-05-01",
-    //       review_src: {
-    //         name: "Наше приложение",
-    //         type: "app",
-    //         address: "https://vk.com/app1234567"
-    //       }
-    //     },
-
-    //     {
-    //       author: {
-    //         first_name: "Иван",
-    //         last_name: "Иванов",
-    //         gender: true,
-    //       },
-    //       review_text: "Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!",
-    //       rating: 5,
-    //       datetime: "2021-05-01",
-    //       review_src: {
-    //         name: "Наше приложение",
-    //         type: "app",
-    //         address: "https://vk.com/app1234567"
-    //       }
-    //     },
-
-    //     {
-    //       author: {
-    //         first_name: "Иван",
-    //         last_name: "Иванов",
-    //         gender: true,
-    //       },
-    //       review_text: "Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!Отличный тур!",
-    //       rating: 5,
-    //       datetime: "2021-05-01",
-    //       review_src: {
-    //         name: "Наше приложение",
-    //         type: "app",
-    //         address: "https://vk.com/app1234567"
-    //       }
-    //     }
-    //   ],
-    // })
   }, [])
+
   return (
     <Panel className="scroll" id={props.id}>
-      <PanelHeader>
+      <PanelHeader
+        left={<PanelHeaderBack onClick={() => props.setActivePanel('tours_view')} />}
+      >
         {props.tour.name}
       </PanelHeader>
 
@@ -138,7 +57,8 @@ const Tour = (props) => {
             <RichCell
               subhead={props.tour.start_date.slice(0, 10) + " - " + props.tour.end_date.slice(0, 10)}
               after={props.tour.price}
-              afterCaption={props.tour.satisfaction_level}
+              afterCaption={ratingToStars(props.tour.satisfaction_level)}
+              caption={props.tour.travel_agency_name}
               disabled
             >
               {props.tour.name}
@@ -152,7 +72,7 @@ const Tour = (props) => {
                 <SimpleCell
                   key={index}
                   before={tripTypeIcons[trip.transport_type]}
-                  subtitle={trip.datetime_start.replace('T', ' ').replace('Z', ' ') + " - " + trip.datetime_end.replace('T', ' ').replace('Z', ' ')}
+                  subtitle={trip.datetime_start.replace('T', ' ').replace('Z', ' ').slice(0, 16) + " - " + trip.datetime_end.replace('T', ' ').replace('Z', ' ').slice(0, 16)}
                   after={trip.price}
                   disabled
                 >
@@ -168,8 +88,9 @@ const Tour = (props) => {
               return (
                 <SimpleCell
                   key={index}
-                  before={<Icon28Profile style={{color: guide.gender ? '#447bba' : '#ff00db'}} />}
+                  before={<Icon28Profile style={{ color: guide.gender ? '#447bba' : '#ff00db' }} />}
                   subtitle={guide.age + " лет"}
+                  subhead={guide.language.join(', ')}
                   disabled
                 >
                   {guide.first_name} {guide.last_name}
@@ -207,18 +128,12 @@ const Tour = (props) => {
             header={<Header>Отзывы</Header>}
           >
             {props.tourInfo.reviews?.slice(0, 3)?.map((review, index) => {
-              let stars = "";
-              for (let i = 0; i < review.rating; i++) {
-                stars += "☆";
-              }
-
               return (
                 <RichCell
                   key={index}
-                  // before={<Icon28Profile />}
                   text={review.review_text}
-                  subhead={review.datetime + " " + review.src_name}
-                  after={stars}
+                  subhead={review.datetime.slice(0, 10) + " " + review.src_address}
+                  after={ratingToStars(review.rating)}
                   disabled
                   multiline
                 >
@@ -255,7 +170,8 @@ const Tour = (props) => {
 
 
 
-    </Panel>
+    
+</Panel>
   );
 };
 export default Tour;

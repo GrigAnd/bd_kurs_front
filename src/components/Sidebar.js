@@ -24,7 +24,8 @@ const Sidebar = (props) => {
         <Cell disabled={"attraction_view" === props.activeStory} before={<Icon28BankOutline />} style={"attraction_view" === props.activeStory ? { backgroundColor: "var(--button_secondary_background)", borderRadius: 8 } : {}} onClick={() => props.setTab("attraction_view")}>Достопримечательности</Cell>
         <Cell disabled={"profile_view" === props.activeStory} before={<Icon28Profile />} style={"profile_view" === props.activeStory ? { backgroundColor: "var(--button_secondary_background)", borderRadius: 8 } : {}} onClick={() => props.setTab("profile_view")}>Личный кабинет</Cell>
       </Group>
-    </Panel>
+    {props.snackbar}
+</Panel>
   );
 };
 

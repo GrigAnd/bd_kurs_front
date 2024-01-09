@@ -9,10 +9,11 @@ import {
   Placeholder,
   Spinner,
   Header,
-  Cell
+  Cell,
+  PanelHeaderBack
 } from "@vkontakte/vkui";
 import React, { useEffect } from "react";
-import { get } from "../../fetchDecorated";
+import { get } from "../../util";
 
 
 const TourRooms = (props) => {
@@ -37,27 +38,6 @@ const TourRooms = (props) => {
         setGroupedRooms(grouped);
       }
       )
-
-
-
-
-    // let rooms = [
-    //   {
-    //     room_id: 1,
-    //     hotel_id: 1,
-    //     hotel_name: "Название отеля",
-    //     hotel_address: "Адрес отеля",
-    //     rating: 5,
-    //     country_id: 1,
-    //     start_date: "2021-05-01",
-    //     end_date: "2021-05-01",
-    //     places: 4,
-    //     price: 1000,
-    //   }
-    // ]
-
-    // Группировка комнат по country_id
-
   }, []);
 
   useEffect(() => {
@@ -68,7 +48,9 @@ const TourRooms = (props) => {
 
   return (
     <Panel className="scroll" id={props.id}>
-      <PanelHeader>
+      <PanelHeader
+      left={<PanelHeaderBack onClick={() => props.setActivePanel('tour_view')} />}
+      >
         Доступные номера
       </PanelHeader>
       <Group
@@ -134,7 +116,8 @@ const TourRooms = (props) => {
       </Group>
 
 
-    </Panel>
+    
+</Panel>
   );
 };
 export default TourRooms;

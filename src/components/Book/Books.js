@@ -7,46 +7,23 @@ import {
   Header,
   Placeholder,
   RichCell,
-  Cell
+  Cell,
+  Spinner,
+  Div
 } from "@vkontakte/vkui";
 import { React, useEffect, useState } from "react";
 import "../../styles.css"
-import { get } from "../../fetchDecorated";
+import { get, ratingToStars } from "../../util";
 
 
 const Books = (props) => {
   const [tours, setTours] = useState();
   const [rooms, setRooms] = useState();
 
-  function updateTours() {
+  function update() {
+    setRooms()
+    setTours()
 
-
-    // setTours([{
-    //   id: 1,
-    //   name: "Название тура",
-    //   start_date: "01.01.2023",
-    //   end_date: "02.01.2023",
-    //   satisfaction_level: 4.8,
-    //   price: "123456",
-    // }])
-
-    setTours(tours)
-  }
-
-  function updateRooms(rooms) {
-    // setRooms([
-    //   {
-    //     room_number: 101,
-    //     hotel_address: 'ffgfdfg',
-    //     hotel_id: 1222,
-    //     start_date: '1.1.01',
-    //     end_date: '1.1.01'
-    //   }
-    // ])
-    setRooms(rooms)
-  }
-
-  useEffect(() => {
     get('http://localhost:12345/getBooks').then((r) => {
 
       if (r.status == 200) {
@@ -54,14 +31,44 @@ const Books = (props) => {
         setRooms(r.json.rooms)
 
       } else {
-        setSnackbar('Ошибка ' + r.status)
+        props.showSnackbar('Ошибка ' + r.status)
       }
       return r.status == 200 ? true : false
     })
+  }
 
+  function cancelTour(tour_id) {
+    get(`http://localhost:12345/cancelTourBook?tour_id=${tour_id}`)
+      .then((r) => {
+        console.log('/cancelTour?tour_id=' + tour_id)
+        console.log(r)
+        if (r.status == 200) {
+          props.showSnackbar('Тур успешно отменен')
+          update()
+        } else {
+          props.showSnackbar('Ошибка ' + r.status)
+        }
+      }
+      )
+  }
 
-    updateTours()
-    updateRooms()
+  function cancelRoom(date) {
+    get(`http://localhost:12345/cancelHotelBook?start_date=${date}`)
+      .then((r) => {
+        console.log('/cancelRoomBook?date=' + date)
+        console.log(r)
+        if (r.status == 200) {
+          props.showSnackbar('Номер успешно отменен')
+          update()
+        } else {
+          props.showSnackbar('Ошибка ' + r.status)
+        }
+      }
+      )
+  }
+
+  useEffect(() => {
+    update()
   }, [])
 
   return (
@@ -72,9 +79,15 @@ const Books = (props) => {
       <Group
         header={<Header mode="secondary">Туры</Header>}
       >
+
+        {tours == undefined &&
+          <Div>
+            <Spinner size="large" />
+          </Div>
+        }
+
         {tours?.length == 0 &&
           <Placeholder
-            // icon={<Icon56InfoOutline />}
             header="Туры не забронированы"
           >
             Сначала забронируйте какой-нибудь тур
@@ -82,26 +95,26 @@ const Books = (props) => {
         }
 
         {tours?.length > 0 && tours.map((tour, index) => {
-          let stars = "";
-          for (let i = 0; i < tour.satisfaction_level; i++) {
-            stars += "☆";
-          }
+
           return (
             <RichCell
               key={index}
-              // before={<Avatar size={72} src={getAvatarUrl('')} />}
               subhead={tour.start_date.slice(0, 10) + " - " + tour.end_date.slice(0, 10)}
-              // text="."
-              // caption=".."
+              caption={tour.travel_agency_name}
               after={tour.price}
-              afterCaption={tour.satisfaction_level + " " + stars}
+              afterCaption={ratingToStars(tour.satisfaction_level)}
               actions={
-                Date.parse(tour.start_date) < Date.now() &&
-                <Button mode="primary" size="s"
-                  onClick={() => props.goToReview(tour.id)}
-                >
-                  Написать отзыв
-                </Button>
+                Date.parse(tour.start_date) < Date.now() ?
+                  <Button mode="primary" size="s"
+                    onClick={() => props.goToReview(tour.id)}
+                  >
+                    Написать отзыв
+                  </Button> :
+                  <Button mode="destructive" size="s"
+                    onClick={() => cancelTour(tour.id)}
+                  >
+                    Отменить бронь
+                  </Button>
               }
               disabled
             >
@@ -115,6 +128,13 @@ const Books = (props) => {
       <Group
         header={<Header mode="secondary">Номера</Header>}
       >
+
+        {rooms == undefined &&
+          <Div>
+            <Spinner size="large" />
+          </Div>
+        }
+
         {rooms?.length == 0 &&
           <Placeholder
             // icon={<Icon56InfoOutline />}
@@ -126,38 +146,32 @@ const Books = (props) => {
 
         {rooms?.length > 0 && rooms.map((room, index) => {
           return (
-            // <RichCell
-            //   key={index}
-            //   // before={<Avatar size={72} src={getAvatarUrl('')} />}
-            //   subhead={room.start_date + " - " + room.end_date}
-            //   after={room.room_number}
-            //   disabled
-            // >
-
-            //   {room.hotel_address}
-            // </RichCell>
-
-            <Cell
+            <RichCell
               key={index}
-              description={`${room.start_date.slice(0, 10)} - ${room.end_date.slice(0, 10)}`}
+              subhead={`${room.start_date.slice(0, 10)} - ${room.end_date.slice(0, 10)}`}
+              text={`Номер ${room.room_id}, ${room.places} мест`}
               after={room.price}
-              onChange={() => {
-                if (selectedRooms?.findIndex((r) => r.room_id == room.room_id && r.hotel_id == room.hotel_id) == -1) {
-                  setSelectedRooms([...selectedRooms]?.concat({ room_id: room.room_id, hotel_id: room.hotel_id, start_date: room.start_date, end_date: room.end_date }))
-                } else {
-                  setSelectedRooms([...selectedRooms]?.filter((r) => !(r.room_id == room.room_id && r.hotel_id == room.hotel_id)))
-                }
+              actions={
+                Date.parse(room.start_date) > Date.now() &&
+                <Button mode="destructive" size="s"
+                  onClick={() => cancelRoom(room.start_date)}
+                >
+                  Отменить бронь
+                </Button>
               }
-              }
+              disabled
             >
-              <Text weight="medium">{room.hotel_name} ({room.hotel_address})</Text>
-              <Text weight="regular">Номер {room.room_id}, {room.places} мест</Text>
-            </Cell>
+
+              {room.hotel_name} ({room.hotel_address})
+            </RichCell>
+
+
           )
         }
         )}
       </Group>
-    </Panel>
+    
+</Panel>
   );
 };
 

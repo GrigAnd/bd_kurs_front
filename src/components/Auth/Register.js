@@ -128,7 +128,8 @@ const Register = (props) => {
           </Button>
         </Div>
       </Group>
-    </Panel>
+    {props.snackbar}
+</Panel>
   );
 };
 export default Register;

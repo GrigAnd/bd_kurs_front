@@ -28,7 +28,7 @@ import Register from "./components/Auth/Register"
 import "./styles.css"
 import TourRooms from "./components/Tour/TourRooms";
 
-import { get, post } from "./fetchDecorated"
+import { get, post } from "./util"
 import BooksReview from "./components/Book/BooksReview";
 
 let isPC = true
@@ -47,18 +47,21 @@ export const App = withAdaptivity(({ viewWidth }) => {
   const [activePanel, setActivePanel] = useState("auth_view"); // Ставим начальную панель
   const [activePanelBooks, setActivePanelBooks] = useState("books_view"); // Ставим начальную панель
 
-  const [tours, setTours] = useState()
+  const [tours, setTours] = useState(undefined)
   const [countryList, setCountryList] = useState([])
   const [selectedCountry, setSelectedCountry] = useState(null)
   const [selectedTour, setSelectedTour] = useState(null)
   const [selectedAttractionCountry, setSelectedAttractionCountry] = useState(null)
   const [tourInfo, setTourInfo] = React.useState()
   const [reviewTourId, setReviewTourId] = React.useState(null)
+  const [whoami, setWhoami] = React.useState({})
+  const [isAuthing, setIsAuthing] = React.useState(false)
 
   function showSnackbar(text) {
     setSnackbar(
       <Snackbar
         onClose={() => setSnackbar(null)}
+
 
       >
         {text}
@@ -67,29 +70,31 @@ export const App = withAdaptivity(({ viewWidth }) => {
   }
 
 
-  function searchTours() {
-    console.log(selectedCountry)
+  function searchTours(sc = selectedCountry) {
+    setTours(-1)
 
-    get(`http://localhost:12345/tour/getByCountry?country_id=${selectedCountry}`)
+    console.log(sc)
+
+    get(`http://localhost:12345/tour/getByCountry?country_id=${sc}`)
       .then((r) => {
-        console.log('/tour/getByCountry?country_id=' + selectedCountry)
+        console.log('/tour/getByCountry?country_id=' + sc)
         console.log(r)
-        if (r.status == 200) {
-          setTours(r.json)
-        } else {
-          setSnackbar('Ошибка ' + r.status)
+
+        switch (r.status) {
+          case 200:
+            setTours(r.json)
+            break;
+          case 409:
+            showSnackbar('Уже забронировано')
+            break;
+          case 500:
+            showSnackbar('Уже забронировано')
+            break;
+          default:
+            showSnackbar('Ошибка ' + r.status)
+            break;
         }
       })
-
-    // let json = [{
-    //   id: 1,
-    //   name: "Название тура",
-    //   start_date: "01.01.2023",
-    //   end_date: "02.01.2023",
-    //   satisfaction_level: 4.8,
-    //   price: "123456",
-    // }]
-    // setTours(json)
   }
 
   function selectTour(idx) {
@@ -111,11 +116,21 @@ export const App = withAdaptivity(({ viewWidth }) => {
     booking.room_books = rooms
 
     post('http://localhost:12345/tour/book', booking).then((r) => {
-      if (r.status == 200) {
-        setActivePanel('tours_view')
-        setActiveStory('books_view')
-      } else {
-        setSnackbar('Ошибка ' + r.status)
+  
+      switch (r.status) {
+        case 200:
+          setActivePanel('tours_view')
+          setActiveStory('books_view')
+          break;
+        case 409:
+          showSnackbar('Уже забронировано')
+          break;
+        case 500:
+          showSnackbar('Уже забронировано')
+          break;
+        default:
+          showSnackbar('Ошибка ' + r.status)
+          break;
       }
     }
     )
@@ -130,7 +145,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
   }
 
   function nameByCountryId(id) {
-    return countryList.find((el) => el.value == id).label
+    let country = countryList.find((el) => el.value == id)
+    return `${country.label} (${country.language})`
   }
 
   function goToReviewCreator(id) {
@@ -140,14 +156,12 @@ export const App = withAdaptivity(({ viewWidth }) => {
 
   function updateCountryList() {
 
-    let json;
-
     fetch('http://localhost:12345/getCountryList')
       .then((r) => {
         if (r.status == 200) {
           return r.json()
         } else {
-          setSnackbar('Ошибка ' + r.status)
+          showSnackbar('Ошибка ' + r.status)
         }
       }
       )
@@ -155,7 +169,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
         let cl = json.map((el) => {
           return {
             value: el.id,
-            label: el.name
+            label: el.name,
+            language: el.language
           }
         }
         )
@@ -164,6 +179,10 @@ export const App = withAdaptivity(({ viewWidth }) => {
         setCountryList(cl)
 
       })
+      .catch((e) => {
+        console.log(e)
+      }
+      )
 
 
 
@@ -172,6 +191,7 @@ export const App = withAdaptivity(({ viewWidth }) => {
 
 
   useEffect(() => {
+    setIsAuthing(true)
     updateCountryList()
     checkPassword()
   }, [])
@@ -179,14 +199,9 @@ export const App = withAdaptivity(({ viewWidth }) => {
 
 
   function showSnackbar(text) {
-    const blueBackground = {
-      backgroundColor: 'var(--accent)' // что это я не знаю, но наверное надо // а нет, всё-таки знаю
-    };
     setSnackbar(
       <Snackbar
-        className={isPC ? "snack" : "snackMob"}
         onClose={() => setSnackbar(null)}
-        before={<Avatar size={24} style={blueBackground}><Icon16Done fill="#fff" width={14} height={14} /></Avatar>}
       >
         {text}
       </Snackbar>
@@ -207,16 +222,20 @@ export const App = withAdaptivity(({ viewWidth }) => {
 
   function checkPassword() {
     if (localStorage.getItem('pwd') == null) {
+      setIsAuthing(false)
       return false
     }
-    get('http://localhost:12345/getBooks').then((r) => {
+    get('http://localhost:12345/whoami').then((r) => {
+      setIsAuthing(false)
 
       if (r.status == 200) {
+        setWhoami(r.json)
         setActiveStory('tours_view')
         setActivePanel('tours_view')
       } else {
-        setSnackbar('Ошибка ' + r.status)
+        showSnackbar('Неверный пароль')
       }
+
       return r.status == 200 ? true : false
     })
   }
@@ -238,10 +257,15 @@ export const App = withAdaptivity(({ viewWidth }) => {
         setActiveStory('tours_view')
         setActivePanel('tours_view')
       } else {
-        setSnackbar('Ошибка ' + r.status)
+        showSnackbar('Ошибка ' + r.status)
       }
       return r.status == 200 ? true : false
     })
+    .catch((e) => {
+      console.log(e)
+      showSnackbar('Ошибка ' + e)
+    }
+    )
   }
 
   const isDesktop = viewWidth >= ViewWidth.TABLET - 1;
@@ -259,6 +283,7 @@ export const App = withAdaptivity(({ viewWidth }) => {
             showSnackbar={showSnackbar}
             setTab={setTab}
             activePanel={activePanel}
+            snackbar={snackbar}
           />
         </SplitCol>
       )}
@@ -277,15 +302,18 @@ export const App = withAdaptivity(({ viewWidth }) => {
               id="auth_view"
               auth={checkPassword}
               register={() => setActivePanel("register_view")}
+              isAuthing={isAuthing}
+              snackbar={snackbar}
             />
 
             <Register
               id="register_view"
               setActivePanel={setActivePanel}
               setActiveStory={setActiveStory}
-              showSnackbar={showSnackbar}
               register={register}
               countryList={countryList}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
 
           </View>
@@ -301,6 +329,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
               selectedCountry={selectedCountry}
               setSelectedCountry={setSelectedCountry}
               selectTour={selectTour}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
             <Tour
               id="tour_view"
@@ -310,11 +340,16 @@ export const App = withAdaptivity(({ viewWidth }) => {
               goToReviews={goToReviews}
               tourInfo={tourInfo}
               setTourInfo={setTourInfo}
+              setActivePanel={setActivePanel}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
             <TourReviews
               id="tour_reviews_view"
               tourInfo={tourInfo}
               setActivePanel={setActivePanel}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
             <TourRooms
               id="tour_rooms"
@@ -323,6 +358,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
               setActivePanel={setActivePanel}
               nameByCountryId={nameByCountryId}
               bookRooms={bookRooms}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
           </View>
           <View
@@ -333,12 +370,16 @@ export const App = withAdaptivity(({ viewWidth }) => {
             <Books
               id="books_view"
               goToReview={goToReviewCreator}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
 
             <BooksReview
               id="books_review"
               setActivePanel={setActivePanelBooks}
               reviewTourId={reviewTourId}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
 
 
@@ -349,7 +390,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
           >
             <Books
               id="review_view"
-
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
           </View>
           <View
@@ -359,6 +401,10 @@ export const App = withAdaptivity(({ viewWidth }) => {
             <Profile
               id="profile_view"
               exit={exit}
+              whoami={whoami}
+              nameByCountryId={nameByCountryId}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
           </View>
           <View
@@ -370,10 +416,12 @@ export const App = withAdaptivity(({ viewWidth }) => {
               countryList={countryList}
               setSelectedCountry={setSelectedAttractionCountry}
               selectedCountry={selectedAttractionCountry}
+              snackbar={snackbar}
+              showSnackbar={showSnackbar}
             />
           </View>
         </Epic>
-        {snackbar}
+
       </SplitCol>
     </SplitLayout>
   );

@@ -8,11 +8,13 @@ import {
   Button,
   Placeholder,
   RichCell,
-  CustomSelect
+  CustomSelect,
+  Spinner
 } from "@vkontakte/vkui";
 import React from "react";
 
 const Tours = (props) => {
+  console.log(props.tours)
   return (
     <Panel className="scroll" id={props.id}>
       <PanelHeader>
@@ -28,25 +30,33 @@ const Tours = (props) => {
             placeholder="Введите название страны"
             searchable
             options={props.countryList}
-            onChange={(e) => props.setSelectedCountry(e.target.value)}
+            onChange={(e) => {
+              props.setSelectedCountry(e.target.value)
+              props.searchTours(e.target.value)
+            }}
             defaultValue={props.selectedCountry}
           />
 
         </FormItem>
-        <Div>
-          <Button
-            onClick={props.searchTours}
-            size="l"
-            stretched
-            mode="primary"
-            disabled={props.selectedCountry == undefined}
-          >Подобрать туры
-          </Button>
-        </Div>
       </Group>
 
 
-      <Group hidden={props.tours?.length == undefined}>
+      <Group>
+
+        {props.tours == -1 &&
+          <Div>
+            <Spinner size="large" />
+          </Div>
+        }
+
+        {props.tours == undefined &&
+          <Placeholder
+            icon={<Icon56InfoOutline />}
+            header="Тут пусто"
+          >
+            Выберите страну чтобы начать поиск
+          </Placeholder>
+        }
 
         {props.tours?.length == 0 &&
           <Placeholder
@@ -65,10 +75,8 @@ const Tours = (props) => {
           return (
             <RichCell
               key={index}
-              // before={<Avatar size={72} src={getAvatarUrl('')} />}
               subhead={tour.start_date.slice(0, 10) + " - " + tour.end_date.slice(0, 10)}
-              // text="."
-              // caption=".."
+              caption={tour.travel_agency_name}
               after={tour.price}
               afterCaption={tour.satisfaction_level + " " + stars}
               actions={
@@ -86,7 +94,8 @@ const Tours = (props) => {
         }
         )}
       </Group>
-    </Panel>
+    
+</Panel>
   );
 };
 export default Tours;
