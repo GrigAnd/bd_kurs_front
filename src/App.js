@@ -220,6 +220,10 @@ export const App = withAdaptivity(({ viewWidth }) => {
       setIsAuthing(false)
       return false
     }
+    updateWhoami()
+  }
+
+  function updateWhoami() {
     get('http://localhost:12345/whoami').then((r) => {
       setIsAuthing(false)
 
@@ -249,8 +253,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
         localStorage.setItem('login', registration.login)
         localStorage.setItem('pwd', registration.password)
 
-        setActiveStory('tours_view')
-        setActivePanel('tours_view')
+        updateWhoami()
+        
       } else {
         showSnackbar('Ошибка ' + r.status)
       }
