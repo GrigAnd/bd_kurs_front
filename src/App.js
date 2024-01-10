@@ -84,12 +84,6 @@ export const App = withAdaptivity(({ viewWidth }) => {
           case 200:
             setTours(r.json)
             break;
-          case 409:
-            showSnackbar('Уже забронировано')
-            break;
-          case 500:
-            showSnackbar('Уже забронировано')
-            break;
           default:
             showSnackbar('Ошибка ' + r.status)
             break;
@@ -102,12 +96,13 @@ export const App = withAdaptivity(({ viewWidth }) => {
     setActivePanel('tour_view')
   }
 
-  function confirmTour(id, isVisa) {
+  function confirmTour(id) {
     booking = ({
       tour_id: id,
       room_books: [],
-      make_visa: isVisa
     })
+
+    console.log(booking)
 
     setActivePanel('tour_rooms')
   }

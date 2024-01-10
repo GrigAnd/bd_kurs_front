@@ -11,7 +11,8 @@ import {
   SimpleCell,
   Separator,
   Switch,
-  PanelHeaderBack
+  PanelHeaderBack,
+  Placeholder
 } from "@vkontakte/vkui";
 import React, { useEffect } from "react";
 import { get, ratingToStars } from "../../util";
@@ -24,9 +25,8 @@ const tripTypeIcons = {
 
 const Tour = (props) => {
 
-  const [needVisa, setNeedVisa] = React.useState(false)
-
   useEffect(() => {
+    props.setTourInfo()
     get(`http://localhost:12345/tour/getInfo?tour_id=${props.tour.id}`)
       .then((r) => {
         console.log('/tour/getInfo?tour_id=' + props.tour.id)
@@ -84,6 +84,11 @@ const Tour = (props) => {
           <Group
             header={<Header>Ваши гиды</Header>}
           >
+            {props.tourInfo.guides?.length == 0 &&
+              <Div>
+                В этом туре нет гидов
+              </Div>
+            }
             {props.tourInfo.guides?.map((guide, index) => {
               return (
                 <SimpleCell
@@ -103,6 +108,13 @@ const Tour = (props) => {
           <Group
             header={<Header>Необходимые визы</Header>}
           >
+
+            {props.tourInfo.need_visa?.length == 0 &&
+              <Div>
+                Уже есть все необходимые визы
+              </Div>
+            }
+
             {props.tourInfo.need_visa?.map((country_id, index) => {
               return (
                 <SimpleCell
@@ -116,17 +128,18 @@ const Tour = (props) => {
             }
 
             )}
-            <Separator />
-            <SimpleCell after={<Switch
-              checked={needVisa}
-              onChange={() => setNeedVisa(!needVisa)}
-            />}>
-              Оформить визы
-            </SimpleCell>
+
           </Group>
           <Group
             header={<Header>Отзывы</Header>}
           >
+
+            {props.tourInfo.reviews?.length == 0 &&
+              <Div>
+                В этом туре еще нет отзывов
+              </Div>
+            }
+            
             {props.tourInfo.reviews?.slice(0, 3)?.map((review, index) => {
               return (
                 <RichCell
@@ -160,7 +173,7 @@ const Tour = (props) => {
                 size="l"
                 stretched
                 mode="primary"
-                onClick={() => props.confirmTour(props.tour.id,)}
+                onClick={() => props.confirmTour(props.tour.id)}
               >Продолжить
               </Button>
             </Div>
@@ -170,8 +183,8 @@ const Tour = (props) => {
 
 
 
-    
-</Panel>
+
+    </Panel>
   );
 };
 export default Tour;
