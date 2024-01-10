@@ -63,6 +63,7 @@ const Register = (props) => {
           <Input
             onChange={(e) => registration.age = +e.target.value}
             maxLength={40}
+            type="number"
           />
         </FormItem>
 

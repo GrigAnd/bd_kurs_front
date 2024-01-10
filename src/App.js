@@ -240,6 +240,21 @@ export const App = withAdaptivity(({ viewWidth }) => {
   }
 
   function register(registration) {
+    if (registration.age < 18) {
+      showSnackbar('Возраст должен быть больше 18')
+      return
+    }
+
+    if (registration.first_name == '' || registration.last_name == '') {
+      showSnackbar('Имя и фамилия не могут быть пустыми')
+      return
+    }
+
+    if (registration.login == '' || registration.password == '') {
+      showSnackbar('Логин и пароль не могут быть пустыми')
+      return
+    }
+
     fetch('http://localhost:12345/register', {
       'headers': {
         "Content-Type": "application/json"
@@ -254,7 +269,7 @@ export const App = withAdaptivity(({ viewWidth }) => {
         localStorage.setItem('pwd', registration.password)
 
         updateWhoami()
-        
+
       } else {
         showSnackbar('Ошибка ' + r.status)
       }
