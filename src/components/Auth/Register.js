@@ -14,7 +14,7 @@ import {
 import React from "react";
 
 const Register = (props) => {
-  let registration = {
+  const [registration, setRegistration] = React.useState({
     first_name: "",
     last_name: "",
     age: 0,
@@ -22,7 +22,7 @@ const Register = (props) => {
     citizenship_id: "",
     login: "",
     password: "",
-  }
+  })
 
   return (
     <Panel className="scroll" id={props.id}>
@@ -42,7 +42,7 @@ const Register = (props) => {
           top="Имя"
         >
           <Input
-            onChange={(e) => registration.first_name = e.target.value}
+            onChange={(e) => setRegistration({ ...registration, first_name: e.target.value })}
             maxLength={40}
           />
         </FormItem>
@@ -51,7 +51,7 @@ const Register = (props) => {
           top="Фамилия"
         >
           <Input
-            onChange={(e) => registration.last_name = e.target.value}
+            onChange={(e) => setRegistration({ ...registration, last_name: e.target.value })}
             maxLength={40}
           />
         </FormItem>
@@ -61,7 +61,7 @@ const Register = (props) => {
           top="Возраст"
         >
           <Input
-            onChange={(e) => registration.age = +e.target.value}
+            onChange={(e) => setRegistration({ ...registration, age: e.target.value })}
             maxLength={40}
             type="number"
           />
@@ -83,7 +83,7 @@ const Register = (props) => {
               },
             ]}
 
-            onSwitch={(e) => registration.gender = e}
+            onSwitch={(e) => setRegistration({ ...registration, gender: e })}
           />
 
         </FormItem>
@@ -95,7 +95,7 @@ const Register = (props) => {
             placeholder="Введите название страны"
             searchable
             options={props.countryList}
-            onChange={(e) => registration.citizenship_id = e.target.value}
+            onChange={(e) => setRegistration({ ...registration, citizenship_id: e.target.value })}
           />
         </FormItem>
 
@@ -103,7 +103,7 @@ const Register = (props) => {
           top="Логин"
         >
           <Input
-            onChange={(e) => registration.login = e.target.value}
+            onChange={(e) => setRegistration({ ...registration, login: e.target.value })}
             maxLength={40}
           />
         </FormItem>
@@ -111,7 +111,7 @@ const Register = (props) => {
           top="Пароль"
         >
           <Input
-            onChange={(e) => registration.password = e.target.value}
+            onChange={(e) => setRegistration({ ...registration, password: e.target.value })}
             maxLength={40}
             type="password"
           />
