@@ -61,7 +61,7 @@ const Register = (props) => {
           top="Возраст"
         >
           <Input
-            onChange={(e) => setRegistration({ ...registration, age: e.target.value })}
+            onChange={(e) => setRegistration({ ...registration, age: +e.target.value })}
             maxLength={40}
             type="number"
           />
@@ -95,7 +95,7 @@ const Register = (props) => {
             placeholder="Введите название страны"
             searchable
             options={props.countryList}
-            onChange={(e) => setRegistration({ ...registration, citizenship_id: e.target.value })}
+            onChange={(e) => setRegistration({ ...registration, citizenship_id: +e.target.value })}
           />
         </FormItem>
 

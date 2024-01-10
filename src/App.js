@@ -270,6 +270,8 @@ export const App = withAdaptivity(({ viewWidth }) => {
 
         updateWhoami()
 
+      } else if (r.status == 500) {
+        showSnackbar('Такой пользователь уже существует')
       } else {
         showSnackbar('Ошибка ' + r.status)
       }
